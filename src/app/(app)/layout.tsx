@@ -5,6 +5,7 @@ import { signOut } from '@/lib/actions/auth'
 import { MobileNav, SidebarNav } from '@/components/nav'
 import { Button } from '@/components/ui'
 import { Logo } from '@/components/logo'
+import { LogoEasterEgg } from '@/components/easter-egg'
 import { APP_NAME } from '@/lib/brand'
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
@@ -16,9 +17,11 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     <div className="lg:flex">
       {/* Masaüstü kenar çubuğu */}
       <aside className="hidden w-60 shrink-0 border-r border-[var(--border)] bg-[var(--surface)] lg:sticky lg:top-0 lg:flex lg:h-dvh lg:flex-col">
-        <div className="flex items-center gap-2.5 px-5 py-5">
-          <Logo size={34} />
-          <span className="text-sm font-semibold">{APP_NAME}</span>
+        <div className="flex items-center gap-3 px-4 py-5">
+          <LogoEasterEgg>
+            <Logo size={52} />
+          </LogoEasterEgg>
+          <span className="text-sm font-semibold leading-tight">{APP_NAME}</span>
         </div>
 
         <div className="flex-1 px-3">
@@ -47,10 +50,14 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       <div className="min-w-0 flex-1">
         {/* Mobil başlık */}
         <header className="flex items-center justify-between border-b border-[var(--border)] bg-[var(--surface)] px-4 py-3 lg:hidden">
-          <Link href="/" className="flex items-center gap-2 text-sm font-semibold">
-            <Logo size={28} />
-            {APP_NAME}
-          </Link>
+          <div className="flex items-center gap-2.5">
+            <LogoEasterEgg>
+              <Logo size={40} />
+            </LogoEasterEgg>
+            <Link href="/" className="text-sm font-semibold">
+              {APP_NAME}
+            </Link>
+          </div>
           <form action={signOut}>
             <Button type="submit" variant="ghost" size="sm">
               Çıkış
