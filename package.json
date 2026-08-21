@@ -13,7 +13,8 @@
     "db:types": "supabase gen types typescript --local > src/types/db.generated.ts",
     "typecheck": "tsc --noEmit",
     "db:demo": "node supabase/scripts/create-demo-user.mjs && PGPASSWORD=postgres psql -q -h 127.0.0.1 -p 54322 -U postgres -d postgres -f supabase/tests/demo_seed.sql",
-    "db:demo:clear": "PGPASSWORD=postgres psql -q -h 127.0.0.1 -p 54322 -U postgres -d postgres -c \"delete from public.trades t using auth.users u where t.user_id=u.id and u.email='deneme@ornek.com'; delete from public.cash_transactions c using auth.users u where c.user_id=u.id and u.email='deneme@ornek.com'; delete from public.price_entries e using auth.users u where e.user_id=u.id and u.email='deneme@ornek.com';\""
+    "db:demo:clear": "PGPASSWORD=postgres psql -q -h 127.0.0.1 -p 54322 -U postgres -d postgres -c \"delete from public.trades t using auth.users u where t.user_id=u.id and u.email='deneme@cagdas.local'; delete from public.cash_transactions c using auth.users u where c.user_id=u.id and u.email='deneme@cagdas.local'; delete from public.price_entries e using auth.users u where e.user_id=u.id and u.email='deneme@cagdas.local';\"",
+    "user:create": "node supabase/scripts/create-admin.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.4",

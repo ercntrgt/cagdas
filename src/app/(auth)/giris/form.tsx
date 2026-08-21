@@ -17,21 +17,25 @@ function Submit() {
 
 export default function SignInForm() {
   const [state, action] = useActionState<AuthState, FormData>(signIn, {})
-  const next = useSearchParams().get('next') ?? '/'
+  const params = useSearchParams()
+  const next = params.get('next') ?? '/'
+  const linkError = params.get('hata')
 
   return (
     <Card className="p-6">
       <form action={action} className="space-y-4">
         <input type="hidden" name="next" value={next} />
-        <FormError>{state.error}</FormError>
+        <FormError>{state.error ?? linkError}</FormError>
 
-        <Field label="E-posta">
+        <Field label="Kullanıcı adı">
           <Input
-            name="email"
-            type="email"
-            autoComplete="email"
+            name="username"
+            autoComplete="username"
+            autoCapitalize="none"
+            autoCorrect="off"
+            spellCheck={false}
             required
-            placeholder="ornek@eposta.com"
+            placeholder="kullaniciadi"
           />
         </Field>
 

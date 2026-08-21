@@ -1,11 +1,14 @@
 import Link from 'next/link'
 import { requireUser } from '@/lib/supabase/server'
+import { emailToUsername } from '@/lib/username'
 import { signOut } from '@/lib/actions/auth'
 import { MobileNav, SidebarNav } from '@/components/nav'
 import { Button } from '@/components/ui'
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
-  const { user } = await requireUser()
+  const { supabase, user } = await requireUser()
+  const { data: isAdmin } = await supabase.rpc('is_admin')
+  const username = emailToUsername(user.email)
 
   return (
     <div className="lg:flex">
@@ -19,13 +22,20 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         </div>
 
         <div className="flex-1 px-3">
-          <SidebarNav />
+          <SidebarNav isAdmin={isAdmin === true} />
         </div>
 
         <div className="border-t border-[var(--border)] p-3">
-          <p className="truncate px-2 pb-2 text-xs text-[var(--muted)]" title={user.email}>
-            {user.email}
-          </p>
+          <div className="flex items-center gap-1.5 px-2 pb-2">
+            <p className="truncate text-xs font-medium text-[var(--muted)]" title={username}>
+              {username}
+            </p>
+            {isAdmin === true ? (
+              <span className="rounded bg-black/[0.06] px-1.5 py-0.5 text-[10px] font-medium text-[var(--muted)] dark:bg-white/[0.08]">
+                yönetici
+              </span>
+            ) : null}
+          </div>
           <form action={signOut}>
             <Button type="submit" variant="secondary" size="sm" className="w-full">
               Çıkış yap
@@ -49,7 +59,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
             </Button>
           </form>
         </header>
-        <MobileNav />
+        <MobileNav isAdmin={isAdmin === true} />
 
         <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8 lg:py-8">{children}</main>
       </div>

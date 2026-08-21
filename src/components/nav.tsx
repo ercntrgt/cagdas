@@ -13,6 +13,13 @@ export const NAV_ITEMS = [
   { href: '/raporlar', label: 'Raporlar', icon: 'M4 20V10M10 20V4M16 20v-7M22 20H2' },
 ] as const
 
+/** Yalnızca yöneticiye gösterilir */
+export const ADMIN_ITEM = {
+  href: '/kullanicilar',
+  label: 'Kullanıcılar',
+  icon: 'M16 20v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 7a3 3 0 1 0 0 6 3 3 0 0 0 0-6M22 20v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8',
+} as const
+
 function Icon({ d }: { d: string }) {
   return (
     <svg
@@ -30,12 +37,13 @@ function Icon({ d }: { d: string }) {
   )
 }
 
-export function SidebarNav() {
+export function SidebarNav({ isAdmin }: { isAdmin?: boolean }) {
   const pathname = usePathname()
+  const items = isAdmin ? [...NAV_ITEMS, ADMIN_ITEM] : NAV_ITEMS
 
   return (
     <nav className="space-y-0.5">
-      {NAV_ITEMS.map((item) => {
+      {items.map((item) => {
         const active = pathname === item.href
         return (
           <Link
@@ -58,12 +66,13 @@ export function SidebarNav() {
   )
 }
 
-export function MobileNav() {
+export function MobileNav({ isAdmin }: { isAdmin?: boolean }) {
   const pathname = usePathname()
+  const items = isAdmin ? [...NAV_ITEMS, ADMIN_ITEM] : NAV_ITEMS
 
   return (
     <nav className="flex overflow-x-auto border-b border-[var(--border)] bg-[var(--surface)] px-2 lg:hidden">
-      {NAV_ITEMS.map((item) => {
+      {items.map((item) => {
         const active = pathname === item.href
         return (
           <Link

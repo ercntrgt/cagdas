@@ -11,9 +11,9 @@ do $$
 declare
   uid uuid;
 begin
-  select id into uid from auth.users where email = 'deneme@ornek.com';
+  select id into uid from auth.users where email = 'deneme@cagdas.local';
   if uid is null then
-    raise exception 'deneme@ornek.com kullanıcısı yok. Önce kayıt olun.';
+    raise exception 'deneme@cagdas.local kullanıcısı yok. Önce kayıt olun.';
   end if;
 
   delete from public.trades            where user_id = uid;
@@ -63,7 +63,7 @@ end $$;
 select symbol, quantity as adet, avg_cost as "ort_maliyet", last_price as "son_fiyat",
        market_value as "piyasa_degeri", unrealized_pnl as "gerceklesmemis_kz"
   from public.positions
- where user_id = (select id from auth.users where email = 'deneme@ornek.com')
+ where user_id = (select id from auth.users where email = 'deneme@cagdas.local')
  order by symbol;
 
 \echo ''
@@ -71,7 +71,7 @@ select symbol, quantity as adet, avg_cost as "ort_maliyet", last_price as "son_f
 select symbol, gross_pnl as "brut", commission as "komisyon", net_pnl as "net",
        trade_count as "islem", open_quantity as "acik_adet"
   from public.symbol_pnl_summary
- where user_id = (select id from auth.users where email = 'deneme@ornek.com')
+ where user_id = (select id from auth.users where email = 'deneme@cagdas.local')
  order by net_pnl desc;
 
 \echo ''
@@ -79,4 +79,4 @@ select symbol, gross_pnl as "brut", commission as "komisyon", net_pnl as "net",
 select balance as "bakiye", total_deposits as "giris", total_withdrawals as "cikis",
        total_commission as "komisyon"
   from public.wallet_balance
- where user_id = (select id from auth.users where email = 'deneme@ornek.com');
+ where user_id = (select id from auth.users where email = 'deneme@cagdas.local');

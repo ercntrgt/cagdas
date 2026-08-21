@@ -17,7 +17,8 @@ BIST hisselerindeki gerçek yatırımlarınızı tek yerden takip etmek için ki
 - **Gösterge paneli** — toplam varlık, nakit, toplam yatırım, gerçekleşen ve gerçekleşmemiş K/Z,
   toplam ve aylık işlem sayısı, hisse bazlı K/Z özeti, varlık değeri zaman serisi
 - **Raporlar** — günlük / haftalık / aylık gerçekleşen K/Z ve işlem sayısı kırılımı
-- **Çok kullanıcılı** — e-posta + şifre ile giriş; her kullanıcı yalnızca kendi verisini görür (RLS)
+- **Kullanıcı adıyla giriş** — e-posta yok, doğrulama maili yok. Herkese açık kayıt da yok:
+  hesapları **yönetici** açar (`/kullanicilar`). Her kullanıcı yalnızca kendi verisini görür (RLS)
 
 ## Kâr/zarar nasıl hesaplanır?
 
@@ -34,6 +35,34 @@ Komisyon **ayrı gider** olarak gösterilir; maliyete karıştırılmaz. Panelde
 Geçmiş tarihli bir işlem eklediğinizde, sildiğinizde veya düzelttiğinizde o hissenin **tüm işlemleri
 tarih sırasına göre yeniden oynatılır** — sonraki satışların maliyeti ve kârı otomatik düzeltilir.
 Bu mantık Postgres tarafında `recalc_symbol()` fonksiyonunda yaşar; arayüz yalnızca okur.
+
+## Giriş ve kullanıcı yönetimi
+
+Supabase Auth kimliği e-posta ister; bu uygulama e-posta kullanmadığı için her kullanıcı adı
+sabit bir iç adrese eşlenir — `ohacagdas` → `ohacagdas@cagdas.local`. Bu adrese **hiçbir zaman
+posta gönderilmez**; hesaplar yönetici tarafından doğrulanmış olarak açılır.
+
+- Yönetici `/kullanicilar` sayfasından kullanıcı ekler, şifre sıfırlar, hesap siler
+- Normal kullanıcı bu sayfayı ne menüde görür ne de doğrudan URL ile açabilir
+- Yetki `profiles.is_admin` alanında tutulur; kontrol `public.is_admin()` fonksiyonuyla
+  veritabanı tarafında yapılır — arayüzde gizlemek tek başına yeterli sayılmaz
+
+İlk yöneticiyi komut satırından oluşturun:
+
+```bash
+npm run user:create -- <kullanıcıadı> '<şifre>'          # yerel
+npm run user:create -- <kullanıcıadı> '<şifre>' --user   # yönetici değil, normal kullanıcı
+```
+
+Bulut projesi için aynı script'i anahtarlarla çalıştırın:
+
+```bash
+SUPABASE_URL=https://<ref>.supabase.co \
+SUPABASE_SERVICE_ROLE_KEY=<service_role_anahtarı> \
+  node supabase/scripts/create-admin.mjs <kullanıcıadı> '<şifre>'
+```
+
+Kullanıcı adı kuralı: 3-32 karakter, küçük harf, rakam ve alt çizgi. Şifre en az 8 karakter.
 
 ## Teknoloji
 
@@ -54,7 +83,11 @@ npm run dev
 ```
 NEXT_PUBLIC_SUPABASE_URL=http://127.0.0.1:54321
 NEXT_PUBLIC_SUPABASE_ANON_KEY=<ANON_KEY>
+SUPABASE_SERVICE_ROLE_KEY=<SERVICE_ROLE_KEY>
 ```
+
+`SUPABASE_SERVICE_ROLE_KEY` yalnızca kullanıcı oluşturma/silme için sunucu tarafında kullanılır.
+RLS'i tamamen atlar — adı asla `NEXT_PUBLIC_` ile başlamamalıdır.
 
 Örnek veriyle denemek için:
 
@@ -72,8 +105,8 @@ npm run db:demo         # deneme@ornek.com / deneme1234 hesabı + örnek işleml
    supabase link --project-ref <proje-ref>
    supabase db push
    ```
-3. **Authentication → Providers → Email** açık olsun.
-   E-posta doğrulaması istemiyorsanız "Confirm email" seçeneğini kapatın.
+3. İlk yöneticiyi oluşturun (yukarıdaki *Giriş ve kullanıcı yönetimi* bölümüne bakın).
+   Supabase'in e-posta ayarlarına dokunmanıza gerek yok — uygulama hiç e-posta göndermez.
 
 ### 2. Vercel
 
@@ -83,6 +116,7 @@ npm run db:demo         # deneme@ornek.com / deneme1234 hesabı + örnek işleml
    |---|---|
    | `NEXT_PUBLIC_SUPABASE_URL` | Supabase → Project Settings → API → Project URL |
    | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | aynı sayfadaki `anon` `public` anahtarı |
+   | `SUPABASE_SERVICE_ROLE_KEY` | aynı sayfadaki `service_role` anahtarı — **Sensitive** işaretleyin |
 3. Deploy
 
 ## Komutlar
@@ -97,6 +131,7 @@ npm run db:demo         # deneme@ornek.com / deneme1234 hesabı + örnek işleml
 | `npm run db:demo` | Örnek kullanıcı + veri yükle |
 | `npm run db:demo:clear` | Örnek veriyi temizle |
 | `npm run seed:symbols` | BIST sembol listesini KAP'tan yeniden çek |
+| `npm run user:create -- <ad> '<şifre>'` | Yönetici hesabı oluştur / şifresini yenile |
 
 ## BIST sembol listesini güncelleme
 
@@ -114,12 +149,13 @@ kullanıcıların elle eklediği semboller etkilenmez.
 
 ```
 supabase/
-  migrations/   0001 şema+RLS · 0002 K/Z motoru · 0003 view'lar · 0004 raporlar · 0005 sembol seed'i
-  scripts/      KAP sembol çekici, demo kullanıcı oluşturucu
+  migrations/   0001 şema+RLS · 0002 K/Z motoru · 0003 view'lar · 0004 raporlar
+                0005 sembol seed'i · 0006 profiller + yönetici yetkisi
+  scripts/      KAP sembol çekici, yönetici/demo kullanıcı oluşturucu
   tests/        K/Z doğrulama testleri, demo veri
 src/
-  app/(auth)/   giriş · kayıt
-  app/(app)/    panel · işlemler · portföy · cüzdan · fiyatlar · raporlar
+  app/(auth)/   giriş
+  app/(app)/    panel · işlemler · portföy · cüzdan · fiyatlar · raporlar · kullanıcılar
   components/   ui · nav · stock-picker · charts
   lib/          supabase istemcileri · server action'lar · biçimlendirme (tr-TR)
 ```

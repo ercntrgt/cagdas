@@ -2,7 +2,7 @@ import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
 /** Giriş yapılmadan erişilebilen rotalar */
-const PUBLIC_ROUTES = ['/giris', '/kayit', '/auth']
+const PUBLIC_ROUTES = ['/giris']
 
 export async function updateSession(request: NextRequest) {
   let response = NextResponse.next({ request })
@@ -43,7 +43,7 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url)
   }
 
-  if (user && (pathname === '/giris' || pathname === '/kayit')) {
+  if (user && pathname === '/giris') {
     const url = request.nextUrl.clone()
     url.pathname = '/'
     url.search = ''
