@@ -24,12 +24,12 @@ export default async function AppLayout({ children }: { children: React.ReactNod
           <span className="text-sm font-semibold leading-tight">{APP_NAME}</span>
         </div>
 
-        <div className="flex-1 px-3">
+        <div className="flex-1 overflow-y-auto px-3">
           <SidebarNav isAdmin={isAdmin === true} />
         </div>
 
         <div className="border-t border-[var(--border)] p-3">
-          <div className="flex items-center gap-1.5 px-2 pb-2">
+          <div className="mb-2 flex items-center gap-1.5 px-2">
             <p className="truncate text-xs font-medium text-[var(--muted)]" title={username}>
               {username}
             </p>

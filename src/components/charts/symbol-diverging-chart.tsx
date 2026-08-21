@@ -24,31 +24,43 @@ import {
   yTickMoney,
 } from './base'
 import { moneyCompact } from '@/lib/format'
-import type { SymbolPnl } from '@/types/db'
 
-/** Yatay çubuk: hisse bazlı net gerçekleşen kâr/zarar (en büyük mutlak değerler). */
-export default function SymbolPnlChart({ data }: { data: SymbolPnl[] }) {
+export type DivergingRow = {
+  symbol: string
+  title?: string | null
+  value: number
+  /** Tooltip'te gösterilecek ek satırlar */
+  detay?: { etiket: string; tutar: number }[]
+}
+
+/**
+ * Hisse bazlı ıraksak yatay çubuk: sıfırın sağı kâr, solu zarar.
+ * İşaret renkle taşınmasın diye her çubuğun ucunda işaretli değer etiketi var.
+ */
+export default function SymbolDivergingChart({
+  data,
+  limit = 12,
+  bos = 'Gösterilecek veri yok.',
+}: {
+  data: DivergingRow[]
+  limit?: number
+  bos?: string
+}) {
   const rows = data
-    .filter((d) => d.net_pnl !== 0)
-    .sort((a, b) => Math.abs(b.net_pnl) - Math.abs(a.net_pnl))
-    .slice(0, 10)
-    .sort((a, b) => b.net_pnl - a.net_pnl)
+    .filter((d) => Number(d.value) !== 0)
+    .sort((a, b) => Math.abs(Number(b.value)) - Math.abs(Number(a.value)))
+    .slice(0, limit)
+    .sort((a, b) => Number(b.value) - Number(a.value))
 
-  if (rows.length === 0) {
-    return <ChartEmpty>Henüz gerçekleşen kâr/zarar yok.</ChartEmpty>
-  }
+  if (rows.length === 0) return <ChartEmpty>{bos}</ChartEmpty>
 
-  const values = rows.map((r) => Number(r.net_pnl))
+  const values = rows.map((r) => Number(r.value))
   const scale = niceScale(Math.min(...values), Math.max(...values))
 
   return (
-    <div className="px-2 py-4" style={{ height: Math.max(200, rows.length * 34 + 48) }}>
+    <div className="px-2 py-4" style={{ height: Math.max(180, rows.length * 34 + 48) }}>
       <ResponsiveContainer width="100%" height="100%">
-        <BarChart
-          data={rows}
-          layout="vertical"
-          margin={{ top: 4, right: 56, bottom: 4, left: 8 }}
-        >
+        <BarChart data={rows} layout="vertical" margin={{ top: 4, right: 20, bottom: 4, left: 8 }}>
           <CartesianGrid {...GRID} vertical horizontal={false} />
           <XAxis
             type="number"
@@ -63,24 +75,25 @@ export default function SymbolPnlChart({ data }: { data: SymbolPnl[] }) {
             cursor={{ fill: 'var(--viz-grid)', fillOpacity: 0.4 }}
             content={({ active, payload }) => {
               if (!active || !payload?.length) return null
-              const row = payload[0].payload as SymbolPnl
+              const row = payload[0].payload as DivergingRow
               return (
                 <TooltipBox
                   title={
                     <>
                       {row.symbol}
-                      <span className="ml-1.5 font-normal text-[var(--muted)]">{row.title}</span>
+                      {row.title ? (
+                        <span className="ml-1.5 font-normal text-[var(--muted)]">{row.title}</span>
+                      ) : null}
                     </>
                   }
                   rows={
                     <>
                       {moneyRow(
-                        row.net_pnl >= 0 ? 'Net kâr' : 'Net zarar',
-                        row.net_pnl,
-                        row.net_pnl >= 0 ? 'var(--viz-profit)' : 'var(--viz-loss)',
+                        Number(row.value) >= 0 ? 'Kâr' : 'Zarar',
+                        Number(row.value),
+                        Number(row.value) >= 0 ? 'var(--viz-profit)' : 'var(--viz-loss)',
                       )}
-                      {moneyRow('Brüt K/Z', row.gross_pnl)}
-                      {moneyRow('Komisyon', row.commission)}
+                      {(row.detay ?? []).map((d) => moneyRow(d.etiket, d.tutar))}
                     </>
                   }
                 />
@@ -88,19 +101,19 @@ export default function SymbolPnlChart({ data }: { data: SymbolPnl[] }) {
             }}
           />
           <Bar
-            dataKey="net_pnl"
-            name="Net K/Z"
+            dataKey="value"
+            name="Kâr/zarar"
             shape={<RoundedBar axisDir="horizontal" />}
             maxBarSize={22}
           >
             {rows.map((d) => (
               <Cell
                 key={d.symbol}
-                fill={d.net_pnl >= 0 ? 'var(--viz-profit)' : 'var(--viz-loss)'}
+                fill={Number(d.value) >= 0 ? 'var(--viz-profit)' : 'var(--viz-loss)'}
               />
             ))}
             <LabelList
-              dataKey="net_pnl"
+              dataKey="value"
               content={(props) => (
                 <SignedLabel
                   {...props}

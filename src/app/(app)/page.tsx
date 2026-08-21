@@ -7,7 +7,7 @@ import type { DashboardSummary, PeriodicPnl, PortfolioHistoryPoint, SymbolPnl } 
 import PortfolioChart from '@/components/charts/portfolio-chart'
 import MonthlyPnlChart from '@/components/charts/monthly-pnl-chart'
 import MonthlyTradesChart from '@/components/charts/monthly-trades-chart'
-import SymbolPnlChart from '@/components/charts/symbol-pnl-chart'
+import SymbolDivergingChart from '@/components/charts/symbol-diverging-chart'
 
 export const metadata = { title: 'Gösterge Paneli' }
 
@@ -171,8 +171,27 @@ export default async function DashboardPage() {
           <CardHeader
             title="Hisse bazlı gerçekleşen kâr/zarar"
             description="En yüksek etkiye sahip 10 hisse"
+            action={
+              <Link href="/analiz">
+                <Button variant="secondary" size="sm">
+                  Tüm analiz
+                </Button>
+              </Link>
+            }
           />
-          <SymbolPnlChart data={symbols} />
+          <SymbolDivergingChart
+            data={symbols.map((r) => ({
+              symbol: r.symbol,
+              title: r.title,
+              value: Number(r.net_pnl),
+              detay: [
+                { etiket: 'Brüt K/Z', tutar: Number(r.gross_pnl) },
+                { etiket: 'Komisyon', tutar: Number(r.commission) },
+              ],
+            }))}
+            limit={10}
+            bos="Henüz gerçekleşen kâr/zarar yok."
+          />
         </Card>
       </div>
 

@@ -11,6 +11,11 @@ export const NAV_ITEMS = [
   { href: '/cuzdan', label: 'Cüzdan', icon: 'M3 7h15a3 3 0 0 1 3 3v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2zM17 13h.01' },
   { href: '/fiyatlar', label: 'Fiyatlar', icon: 'M3 17l6-6 4 4 8-8' },
   { href: '/raporlar', label: 'Raporlar', icon: 'M4 20V10M10 20V4M16 20v-7M22 20H2' },
+  {
+    href: '/analiz',
+    label: 'Analiz',
+    icon: 'M21 21H4a1 1 0 0 1-1-1V3M7 15l4-5 3 3 5-7M19 6h2v2',
+  },
 ] as const
 
 /** Yalnızca yöneticiye gösterilir */

@@ -43,3 +43,6 @@ next-env.d.ts
 
 # logo kaynak dosyası (public/logo.png türetilmiş hâli)
 /image.png
+
+# arkadaşın geçmiş verisi (kişisel finansal ekran görüntüleri) — public repoya girmesin
+/Geçmiş/

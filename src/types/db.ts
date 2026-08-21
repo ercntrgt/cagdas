@@ -135,3 +135,74 @@ export interface DashboardSummary {
   trade_count_week: number
   trade_count_today: number
 }
+
+/** symbol_analysis view'ı — hisse başına ayrıntılı istatistik */
+export interface SymbolAnalysis {
+  user_id: string
+  symbol: string
+  title: string | null
+  trade_count: number
+  buy_count: number
+  sell_count: number
+  buy_qty: number
+  sell_qty: number
+  open_qty: number
+  buy_amount: number
+  sell_amount: number
+  volume: number
+  avg_buy_price: number | null
+  avg_sell_price: number | null
+  commission: number
+  realized_gross: number
+  realized_net: number
+  unrealized_pnl: number
+  market_value: number
+  open_cost: number
+  avg_cost: number | null
+  last_price: number | null
+  /** Gerçekleşen net + gerçekleşmemiş */
+  total_pnl: number
+  win_sells: number
+  loss_sells: number
+  best_sell: number | null
+  worst_sell: number | null
+  first_trade_date: string
+  last_trade_date: string
+  span_days: number
+  roi_pct: number | null
+}
+
+/** get_analysis_summary() çıktısı */
+export interface AnalysisSummary {
+  trade_count: number
+  sell_count: number
+  win_count: number
+  loss_count: number
+  flat_count: number
+  /** Kârla kapanan satışların yüzdesi */
+  win_rate: number | null
+  total_win: number
+  total_loss: number
+  avg_win: number
+  avg_loss: number
+  /** Toplam brüt kâr / toplam brüt zarar */
+  profit_factor: number | null
+  best_trade: number
+  worst_trade: number
+  commission: number
+  /** Komisyonun toplam brüt kâra oranı (%) */
+  commission_ratio: number | null
+  volume: number
+  realized_gross: number
+  realized_net: number
+  unrealized: number
+  total_pnl: number
+  market_value: number
+  open_cost: number
+  position_count: number
+  symbol_count: number
+  winning_symbols: number
+  losing_symbols: number
+  closed_symbols: number
+  avg_span_days: number
+}
