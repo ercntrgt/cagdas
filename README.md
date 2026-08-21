@@ -1,36 +1,125 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# BIST Portföy
 
-## Getting Started
+BIST hisselerindeki gerçek yatırımlarınızı tek yerden takip etmek için kişisel portföy defteri.
+İşlemlerinizi elle girersiniz; sistem cüzdanınızı, ortalama maliyetinizi ve kâr/zararınızı hesaplar.
 
-First, run the development server:
+> **Bu bir aracı kurum yazılımı değildir.** Emir iletimi yoktur, canlı fiyat akışı yoktur.
+> Fiyatları siz girersiniz — bu sayede veri sağlayıcı aboneliği veya API anahtarı gerekmez.
+
+## Özellikler
+
+- **Cüzdan** — nakit giriş/çıkış hareketleri; banka detayı ve not alanlarıyla
+- **İşlemler** — alış/satış kaydı: hisse, adet, birim fiyat, işleme özel komisyon, tarih, not
+- **Hisse listesi** — KAP'tan alınan **800 BIST sembolü**; `sa` yazınca `SASA` ilk çıkar.
+  Listede olmayan bir sembolü kendiniz ekleyebilirsiniz
+- **Portföy** — açık pozisyonlar, ortalama maliyet, gerçekleşmemiş kâr/zarar, portföy ağırlığı
+- **Fiyatlar** — portföydeki hisseler için toplu manuel fiyat girişi (her giriş grafikte bir nokta bırakır)
+- **Gösterge paneli** — toplam varlık, nakit, toplam yatırım, gerçekleşen ve gerçekleşmemiş K/Z,
+  toplam ve aylık işlem sayısı, hisse bazlı K/Z özeti, varlık değeri zaman serisi
+- **Raporlar** — günlük / haftalık / aylık gerçekleşen K/Z ve işlem sayısı kırılımı
+- **Çok kullanıcılı** — e-posta + şifre ile giriş; her kullanıcı yalnızca kendi verisini görür (RLS)
+
+## Kâr/zarar nasıl hesaplanır?
+
+**Ağırlıklı ortalama maliyet** yöntemi kullanılır (Türkiye'de aracı kurumların standardı).
+
+| Aşama | Hesap |
+|---|---|
+| Alış | `ortalama maliyet = toplam maliyet / toplam adet` |
+| Satış | `brüt K/Z = (satış fiyatı − ortalama maliyet) × adet` |
+| Net | `net K/Z = brüt K/Z − komisyonlar` |
+
+Komisyon **ayrı gider** olarak gösterilir; maliyete karıştırılmaz. Panelde hem brüt hem net rakam görünür.
+
+Geçmiş tarihli bir işlem eklediğinizde, sildiğinizde veya düzelttiğinizde o hissenin **tüm işlemleri
+tarih sırasına göre yeniden oynatılır** — sonraki satışların maliyeti ve kârı otomatik düzeltilir.
+Bu mantık Postgres tarafında `recalc_symbol()` fonksiyonunda yaşar; arayüz yalnızca okur.
+
+## Teknoloji
+
+Next.js 16 (App Router) · TypeScript · Tailwind CSS 4 · Recharts · Supabase (Postgres + Auth + RLS) · Vercel
+
+## Yerel kurulum
+
+Gereksinimler: Node 20+, Docker Desktop, [Supabase CLI](https://supabase.com/docs/guides/cli)
 
 ```bash
+npm install
+supabase start          # yerel Postgres + Auth ayağa kalkar, migration'lar uygulanır
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+`supabase start` çıktısındaki `API_URL` ve `ANON_KEY` değerlerini `.env.local` dosyasına yazın:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```
+NEXT_PUBLIC_SUPABASE_URL=http://127.0.0.1:54321
+NEXT_PUBLIC_SUPABASE_ANON_KEY=<ANON_KEY>
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Örnek veriyle denemek için:
 
-## Learn More
+```bash
+npm run db:demo         # deneme@ornek.com / deneme1234 hesabı + örnek işlemler
+```
 
-To learn more about Next.js, take a look at the following resources:
+## Üretime alma
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### 1. Supabase projesi
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+1. [supabase.com/dashboard](https://supabase.com/dashboard) üzerinden yeni proje oluşturun
+2. Migration'ları gönderin:
+   ```bash
+   supabase link --project-ref <proje-ref>
+   supabase db push
+   ```
+3. **Authentication → Providers → Email** açık olsun.
+   E-posta doğrulaması istemiyorsanız "Confirm email" seçeneğini kapatın.
 
-## Deploy on Vercel
+### 2. Vercel
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+1. Bu repoyu Vercel'e import edin
+2. Ortam değişkenleri (Project Settings → Environment Variables):
+   | Değişken | Değer |
+   |---|---|
+   | `NEXT_PUBLIC_SUPABASE_URL` | Supabase → Project Settings → API → Project URL |
+   | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | aynı sayfadaki `anon` `public` anahtarı |
+3. Deploy
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Komutlar
+
+| Komut | Açıklama |
+|---|---|
+| `npm run dev` | Geliştirme sunucusu |
+| `npm run build` | Üretim derlemesi |
+| `npm run typecheck` | TypeScript kontrolü |
+| `npm run db:reset` | Yerel veritabanını sıfırla, migration'ları yeniden uygula |
+| `npm run db:test` | Kâr/zarar motorunun doğrulama testleri |
+| `npm run db:demo` | Örnek kullanıcı + veri yükle |
+| `npm run db:demo:clear` | Örnek veriyi temizle |
+| `npm run seed:symbols` | BIST sembol listesini KAP'tan yeniden çek |
+
+## BIST sembol listesini güncelleme
+
+Yeni halka arzlar veya borsadan çıkışlar sonrası:
+
+```bash
+npm run seed:symbols    # supabase/migrations/0005_seed_stocks.sql yeniden üretilir
+supabase db push        # (veya yerelde: npm run db:reset)
+```
+
+Dosya idempotenttir (`ON CONFLICT DO UPDATE`) — mevcut sembollerin unvanları güncellenir,
+kullanıcıların elle eklediği semboller etkilenmez.
+
+## Proje yapısı
+
+```
+supabase/
+  migrations/   0001 şema+RLS · 0002 K/Z motoru · 0003 view'lar · 0004 raporlar · 0005 sembol seed'i
+  scripts/      KAP sembol çekici, demo kullanıcı oluşturucu
+  tests/        K/Z doğrulama testleri, demo veri
+src/
+  app/(auth)/   giriş · kayıt
+  app/(app)/    panel · işlemler · portföy · cüzdan · fiyatlar · raporlar
+  components/   ui · nav · stock-picker · charts
+  lib/          supabase istemcileri · server action'lar · biçimlendirme (tr-TR)
+```

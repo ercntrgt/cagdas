@@ -6,12 +6,22 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "seed:symbols": "node supabase/scripts/fetch-bist-symbols.mjs",
+    "db:reset": "supabase db reset",
+    "db:test": "PGPASSWORD=postgres psql -q -h 127.0.0.1 -p 54322 -U postgres -d postgres -f supabase/tests/pnl_test.sql",
+    "db:types": "supabase gen types typescript --local > src/types/db.generated.ts",
+    "typecheck": "tsc --noEmit",
+    "db:demo": "node supabase/scripts/create-demo-user.mjs && PGPASSWORD=postgres psql -q -h 127.0.0.1 -p 54322 -U postgres -d postgres -f supabase/tests/demo_seed.sql",
+    "db:demo:clear": "PGPASSWORD=postgres psql -q -h 127.0.0.1 -p 54322 -U postgres -d postgres -c \"delete from public.trades t using auth.users u where t.user_id=u.id and u.email='deneme@ornek.com'; delete from public.cash_transactions c using auth.users u where c.user_id=u.id and u.email='deneme@ornek.com'; delete from public.price_entries e using auth.users u where e.user_id=u.id and u.email='deneme@ornek.com';\""
   },
   "dependencies": {
+    "@supabase/ssr": "^0.12.4",
+    "@supabase/supabase-js": "^2.112.3",
     "next": "16.3.1",
     "react": "19.2.8",
-    "react-dom": "19.2.8"
+    "react-dom": "19.2.8",
+    "recharts": "^3.10.1"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
