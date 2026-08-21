@@ -1,12 +1,13 @@
 import type { Metadata, Viewport } from 'next'
 import { Inter } from 'next/font/google'
 import './globals.css'
+import { APP_DESCRIPTION, APP_NAME } from '@/lib/brand'
 
 const inter = Inter({ variable: '--font-inter', subsets: ['latin', 'latin-ext'] })
 
 export const metadata: Metadata = {
-  title: 'BIST Portföy',
-  description: 'BIST hisse portföyü, cüzdan ve kâr/zarar takibi',
+  title: { default: APP_NAME, template: `%s · ${APP_NAME}` },
+  description: APP_DESCRIPTION,
 }
 
 export const viewport: Viewport = {

@@ -8,7 +8,7 @@ import { date, money, pnlClass, price, qty } from '@/lib/format'
 import type { Trade } from '@/types/db'
 import TradeForm from './form'
 
-export const metadata = { title: 'İşlemler · BIST Portföy' }
+export const metadata = { title: 'İşlemler' }
 
 type Search = { hisse?: string; tip?: string; baslangic?: string; bitis?: string }
 

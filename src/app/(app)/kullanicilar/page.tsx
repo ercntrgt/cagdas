@@ -8,7 +8,7 @@ import { date } from '@/lib/format'
 import NewUserForm from './form'
 import PasswordForm from './password-form'
 
-export const metadata = { title: 'Kullanıcılar · BIST Portföy' }
+export const metadata = { title: 'Kullanıcılar' }
 
 type Profile = {
   id: string

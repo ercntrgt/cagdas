@@ -9,7 +9,7 @@ import MonthlyPnlChart from '@/components/charts/monthly-pnl-chart'
 import MonthlyTradesChart from '@/components/charts/monthly-trades-chart'
 import SymbolPnlChart from '@/components/charts/symbol-pnl-chart'
 
-export const metadata = { title: 'Gösterge Paneli · BIST Portföy' }
+export const metadata = { title: 'Gösterge Paneli' }
 
 export default async function DashboardPage() {
   const { supabase } = await requireUser()

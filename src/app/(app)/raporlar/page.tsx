@@ -5,7 +5,7 @@ import { Card, CardHeader, Empty, Table, Td, Th, cn } from '@/components/ui'
 import { date, money, moneySigned, month, pnlClass, week } from '@/lib/format'
 import type { DailyPnl, PeriodicPnl } from '@/types/db'
 
-export const metadata = { title: 'Raporlar · BIST Portföy' }
+export const metadata = { title: 'Raporlar' }
 
 const PERIODS = [
   { key: 'gunluk', label: 'Günlük', view: 'realized_pnl_daily', column: 'day' },

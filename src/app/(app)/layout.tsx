@@ -4,6 +4,8 @@ import { emailToUsername } from '@/lib/username'
 import { signOut } from '@/lib/actions/auth'
 import { MobileNav, SidebarNav } from '@/components/nav'
 import { Button } from '@/components/ui'
+import { Logo } from '@/components/logo'
+import { APP_NAME } from '@/lib/brand'
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const { supabase, user } = await requireUser()
@@ -15,10 +17,8 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       {/* Masaüstü kenar çubuğu */}
       <aside className="hidden w-60 shrink-0 border-r border-[var(--border)] bg-[var(--surface)] lg:sticky lg:top-0 lg:flex lg:h-dvh lg:flex-col">
         <div className="flex items-center gap-2.5 px-5 py-5">
-          <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-neutral-900 text-sm font-bold text-white dark:bg-white dark:text-neutral-900">
-            ₺
-          </span>
-          <span className="text-sm font-semibold">BIST Portföy</span>
+          <Logo size={34} />
+          <span className="text-sm font-semibold">{APP_NAME}</span>
         </div>
 
         <div className="flex-1 px-3">
@@ -48,10 +48,8 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         {/* Mobil başlık */}
         <header className="flex items-center justify-between border-b border-[var(--border)] bg-[var(--surface)] px-4 py-3 lg:hidden">
           <Link href="/" className="flex items-center gap-2 text-sm font-semibold">
-            <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-neutral-900 text-xs font-bold text-white dark:bg-white dark:text-neutral-900">
-              ₺
-            </span>
-            BIST Portföy
+            <Logo size={28} />
+            {APP_NAME}
           </Link>
           <form action={signOut}>
             <Button type="submit" variant="ghost" size="sm">

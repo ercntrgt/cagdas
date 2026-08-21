@@ -7,7 +7,7 @@ import { date, price } from '@/lib/format'
 import type { Position, PriceEntry } from '@/types/db'
 import PriceForm from './form'
 
-export const metadata = { title: 'Fiyatlar · BIST Portföy' }
+export const metadata = { title: 'Fiyatlar' }
 
 export default async function FiyatlarPage() {
   const { supabase } = await requireUser()

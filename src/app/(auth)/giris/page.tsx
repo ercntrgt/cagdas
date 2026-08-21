@@ -1,7 +1,7 @@
 import { Suspense } from 'react'
 import SignInForm from './form'
 
-export const metadata = { title: 'Giriş yap · BIST Portföy' }
+export const metadata = { title: 'Giriş yap' }
 
 export default function GirisPage() {
   return (

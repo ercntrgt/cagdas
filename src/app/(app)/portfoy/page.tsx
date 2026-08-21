@@ -5,7 +5,7 @@ import { Button, Card, CardHeader, Empty, Table, Td, Th } from '@/components/ui'
 import { date, money, percent, pnlClass, price, qty } from '@/lib/format'
 import type { Position } from '@/types/db'
 
-export const metadata = { title: 'Portföy · BIST Portföy' }
+export const metadata = { title: 'Portföy' }
 
 export default async function PortfoyPage() {
   const { supabase } = await requireUser()

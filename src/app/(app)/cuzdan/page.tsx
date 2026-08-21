@@ -7,7 +7,7 @@ import { date, money } from '@/lib/format'
 import type { CashTransaction, WalletBalance } from '@/types/db'
 import CashForm from './form'
 
-export const metadata = { title: 'Cüzdan · BIST Portföy' }
+export const metadata = { title: 'Cüzdan' }
 
 export default async function CuzdanPage() {
   const { supabase } = await requireUser()
