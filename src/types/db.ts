@@ -83,6 +83,12 @@ export interface PeriodPnl {
   buy_count: number
   sell_count: number
   trade_count: number
+  /** Dönemdeki alışların toplam tutarı */
+  buy_amount: number
+  /** Dönemdeki satışların toplam tutarı */
+  sell_amount: number
+  /** İşlem hacmi = alış + satış tutarı (komisyon hariç) */
+  volume: number
 }
 
 export type DailyPnl = PeriodPnl & { day: string }

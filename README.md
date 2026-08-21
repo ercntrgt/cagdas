@@ -16,7 +16,8 @@ BIST hisselerindeki gerçek yatırımlarınızı tek yerden takip etmek için ki
 - **Fiyatlar** — portföydeki hisseler için toplu manuel fiyat girişi (her giriş grafikte bir nokta bırakır)
 - **Gösterge paneli** — toplam varlık, nakit, toplam yatırım, gerçekleşen ve gerçekleşmemiş K/Z,
   toplam ve aylık işlem sayısı, hisse bazlı K/Z özeti, varlık değeri zaman serisi
-- **Raporlar** — günlük / haftalık / aylık gerçekleşen K/Z ve işlem sayısı kırılımı
+- **Raporlar** — günlük / haftalık / aylık kırılım: alış ve satış tutarları, işlem hacmi,
+  işlem sayısı ve gerçekleşen kâr/zarar
 - **Kullanıcı adıyla giriş** — e-posta yok, doğrulama maili yok. Herkese açık kayıt da yok:
   hesapları **yönetici** açar (`/kullanicilar`). Her kullanıcı yalnızca kendi verisini görür (RLS)
 
@@ -151,6 +152,7 @@ kullanıcıların elle eklediği semboller etkilenmez.
 supabase/
   migrations/   0001 şema+RLS · 0002 K/Z motoru · 0003 view'lar · 0004 raporlar
                 0005 sembol seed'i · 0006 profiller + yönetici yetkisi
+                0007 raporlara tutar ve hacim
   scripts/      KAP sembol çekici, yönetici/demo kullanıcı oluşturucu
   tests/        K/Z doğrulama testleri, demo veri
 src/
