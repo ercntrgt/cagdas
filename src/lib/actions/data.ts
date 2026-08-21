@@ -1,6 +1,7 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
+import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { parseNumber } from '@/lib/format'
 import type { Stock } from '@/types/db'
@@ -70,6 +71,47 @@ export async function createTrade(_prev: FormState, formData: FormData): Promise
   }
 }
 
+export async function updateTrade(_prev: FormState, formData: FormData): Promise<FormState> {
+  const id = field(formData, 'id')
+  if (!id) return { error: 'Güncellenecek işlem bulunamadı.' }
+
+  const symbol = field(formData, 'symbol').toUpperCase()
+  const side = field(formData, 'side')
+  const quantity = parseNumber(field(formData, 'quantity'))
+  const unitPrice = parseNumber(field(formData, 'unit_price'))
+  const commission = parseNumber(field(formData, 'commission')) ?? 0
+  const tradeDate = field(formData, 'trade_date')
+  const note = field(formData, 'note')
+
+  if (!symbol) return { error: 'Hisse seçin.' }
+  if (side !== 'buy' && side !== 'sell') return { error: 'İşlem tipi geçersiz.' }
+  if (quantity === null || quantity <= 0) return { error: 'Geçerli bir adet girin.' }
+  if (unitPrice === null || unitPrice < 0) return { error: 'Geçerli bir birim fiyat girin.' }
+  if (commission < 0) return { error: 'Komisyon negatif olamaz.' }
+  if (!tradeDate) return { error: 'İşlem tarihi zorunludur.' }
+
+  const supabase = await createClient()
+  const { error } = await supabase
+    .from('trades')
+    .update({
+      symbol,
+      side,
+      quantity,
+      unit_price: unitPrice,
+      commission,
+      trade_date: tradeDate,
+      note: note || null,
+    })
+    .eq('id', id)
+
+  // Değişiklik bu hissenin tüm kâr/zarar geçmişini yeniden hesaplatır;
+  // örneğin adedi büyütmek sonraki bir satışı imkânsız hâle getirebilir.
+  if (error) return { error: dbError(error.message) }
+
+  revalidateAll()
+  redirect(`/islemler?guncellendi=${encodeURIComponent(symbol)}`)
+}
+
 /** Doğrudan <form action={deleteTrade}> olarak kullanılır. */
 export async function deleteTrade(formData: FormData): Promise<void> {
   const id = field(formData, 'id')
@@ -91,7 +133,8 @@ export async function createCash(_prev: FormState, formData: FormData): Promise<
   const note = field(formData, 'note')
   const transactionDate = field(formData, 'transaction_date')
 
-  if (type !== 'deposit' && type !== 'withdrawal') return { error: 'Hareket tipi geçersiz.' }
+  if (type !== 'deposit' && type !== 'withdrawal' && type !== 'commission')
+    return { error: 'Hareket tipi geçersiz.' }
   if (amount === null || amount <= 0) return { error: 'Geçerli bir tutar girin.' }
   if (!transactionDate) return { error: 'Tarih zorunludur.' }
 
@@ -107,7 +150,47 @@ export async function createCash(_prev: FormState, formData: FormData): Promise<
   if (error) return { error: dbError(error.message) }
 
   revalidateAll()
-  return { success: type === 'deposit' ? 'Para girişi kaydedildi.' : 'Para çıkışı kaydedildi.' }
+  return {
+    success:
+      type === 'deposit'
+        ? 'Para girişi kaydedildi.'
+        : type === 'withdrawal'
+          ? 'Para çıkışı kaydedildi.'
+          : 'Komisyon kaydedildi.',
+  }
+}
+
+export async function updateCash(_prev: FormState, formData: FormData): Promise<FormState> {
+  const id = field(formData, 'id')
+  if (!id) return { error: 'Güncellenecek hareket bulunamadı.' }
+
+  const type = field(formData, 'type')
+  const amount = parseNumber(field(formData, 'amount'))
+  const bank = field(formData, 'bank')
+  const note = field(formData, 'note')
+  const transactionDate = field(formData, 'transaction_date')
+
+  if (type !== 'deposit' && type !== 'withdrawal' && type !== 'commission')
+    return { error: 'Hareket tipi geçersiz.' }
+  if (amount === null || amount <= 0) return { error: 'Geçerli bir tutar girin.' }
+  if (!transactionDate) return { error: 'Tarih zorunludur.' }
+
+  const supabase = await createClient()
+  const { error } = await supabase
+    .from('cash_transactions')
+    .update({
+      type,
+      amount,
+      bank: bank || null,
+      note: note || null,
+      transaction_date: transactionDate,
+    })
+    .eq('id', id)
+
+  if (error) return { error: dbError(error.message) }
+
+  revalidateAll()
+  redirect('/cuzdan?guncellendi=1')
 }
 
 /** Doğrudan <form action={deleteCash}> olarak kullanılır. */

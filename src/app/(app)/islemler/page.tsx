@@ -2,15 +2,22 @@ import { requireUser } from '@/lib/supabase/server'
 import { getStockOptions } from '@/lib/data'
 import { deleteTrade } from '@/lib/actions/data'
 import { PageHeader } from '@/components/kpi'
-import { DeleteButton } from '@/components/forms'
-import { Badge, Button, Card, CardHeader, Empty, Table, Td, Th, inputClass } from '@/components/ui'
+import { DeleteButton, EditLink } from '@/components/forms'
+import { Badge, Button, Card, CardHeader, Empty, FormSuccess, Table, Td, Th, inputClass } from '@/components/ui'
 import { date, money, pnlClass, price, qty } from '@/lib/format'
 import type { Trade } from '@/types/db'
 import TradeForm from './form'
 
 export const metadata = { title: 'İşlemler' }
 
-type Search = { hisse?: string; tip?: string; baslangic?: string; bitis?: string }
+type Search = {
+  hisse?: string
+  tip?: string
+  baslangic?: string
+  bitis?: string
+  duzenle?: string
+  guncellendi?: string
+}
 
 export default async function IslemlerPage({
   searchParams,
@@ -32,10 +39,13 @@ export default async function IslemlerPage({
   if (filters.baslangic) query = query.gte('trade_date', filters.baslangic)
   if (filters.bitis) query = query.lte('trade_date', filters.bitis)
 
-  const [stocks, { data: rows }, { data: usedSymbols }] = await Promise.all([
+  const [stocks, { data: rows }, { data: usedSymbols }, duzenlenen] = await Promise.all([
     getStockOptions(supabase),
     query,
     supabase.from('symbol_pnl_summary').select('symbol').order('symbol'),
+    filters.duzenle
+      ? supabase.from('trades').select('*').eq('id', filters.duzenle).maybeSingle()
+      : Promise.resolve({ data: null }),
   ])
 
   const trades = (rows ?? []) as Trade[]
@@ -49,8 +59,14 @@ export default async function IslemlerPage({
         description="Alım ve satım kayıtlarınız. Kâr/zarar ağırlıklı ortalama maliyet yöntemiyle hesaplanır."
       />
 
+      {filters.guncellendi ? (
+        <div className="mb-4">
+          <FormSuccess>{filters.guncellendi} işlemi güncellendi.</FormSuccess>
+        </div>
+      ) : null}
+
       <div className="grid gap-6 lg:grid-cols-[minmax(0,380px)_1fr]">
-        <TradeForm stocks={stocks} />
+        <TradeForm stocks={stocks} initial={(duzenlenen?.data ?? null) as Trade | null} />
 
         <Card className="overflow-hidden">
           <CardHeader
@@ -116,12 +132,15 @@ export default async function IslemlerPage({
                   <Th className="text-right">Ort. maliyet</Th>
                   <Th className="text-right">Brüt K/Z</Th>
                   <Th>Not</Th>
-                  <Th className="w-10" />
+                  <Th className="w-20" />
                 </tr>
               </thead>
               <tbody>
                 {trades.map((t) => (
-                  <tr key={t.id}>
+                  <tr
+                    key={t.id}
+                    className="transition-colors hover:bg-black/[0.02] dark:hover:bg-white/[0.03]"
+                  >
                     <Td className="tnum text-[var(--muted)]">{date(t.trade_date)}</Td>
                     <Td className="font-semibold">{t.symbol}</Td>
                     <Td>
@@ -147,14 +166,17 @@ export default async function IslemlerPage({
                       {t.note || '—'}
                     </Td>
                     <Td>
-                      <form action={deleteTrade}>
-                        <input type="hidden" name="id" value={t.id} />
-                        <DeleteButton
-                          confirmText={`${date(t.trade_date)} tarihli ${t.symbol} ${
-                            t.side === 'buy' ? 'alış' : 'satış'
-                          } işlemi silinsin mi? Bu hissenin tüm kâr/zarar hesabı yeniden yapılacak.`}
-                        />
-                      </form>
+                      <div className="flex items-center justify-end gap-0.5">
+                        <EditLink href={`/islemler?duzenle=${t.id}`} />
+                        <form action={deleteTrade}>
+                          <input type="hidden" name="id" value={t.id} />
+                          <DeleteButton
+                            confirmText={`${date(t.trade_date)} tarihli ${t.symbol} ${
+                              t.side === 'buy' ? 'alış' : 'satış'
+                            } işlemi silinsin mi? Bu hissenin tüm kâr/zarar hesabı yeniden yapılacak.`}
+                          />
+                        </form>
+                      </div>
                     </Td>
                   </tr>
                 ))}

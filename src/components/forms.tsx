@@ -1,7 +1,8 @@
 'use client'
 
+import Link from 'next/link'
 import { useFormStatus } from 'react-dom'
-import { Button } from '@/components/ui'
+import { Button, cn } from '@/components/ui'
 
 export function SubmitButton({
   children,
@@ -55,5 +56,32 @@ export function DeleteButton({ confirmText }: { confirmText: string }) {
         </svg>
       )}
     </Button>
+  )
+}
+
+export function EditLink({ href }: { href: string }) {
+  return (
+    <Link
+      href={href}
+      title="Düzenle"
+      aria-label="Düzenle"
+      className={cn(
+        'inline-flex h-8 w-9 items-center justify-center rounded-lg text-[var(--muted)] transition-colors',
+        'hover:bg-black/[0.04] hover:text-blue-600 dark:hover:bg-white/[0.06] dark:hover:text-blue-400',
+      )}
+    >
+      <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        className="h-4 w-4"
+        aria-hidden="true"
+      >
+        <path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z" />
+      </svg>
+    </Link>
   )
 }

@@ -1,6 +1,6 @@
 // Supabase şema tipleri. Yeniden üretmek için:
 //   supabase gen types typescript --local > src/types/db.ts
-export type CashType = 'deposit' | 'withdrawal'
+export type CashType = 'deposit' | 'withdrawal' | 'commission'
 export type TradeSide = 'buy' | 'sell'
 
 export interface Stock {
@@ -71,6 +71,10 @@ export interface WalletBalance {
   total_withdrawals: number
   total_buy_amount: number
   total_sell_amount: number
+  /** İşlemlere tek tek girilen komisyonlar */
+  trade_commission: number
+  /** Cüzdana ayrıca girilen komisyon/masraf hareketleri */
+  wallet_commission: number
   total_commission: number
   balance: number
 }

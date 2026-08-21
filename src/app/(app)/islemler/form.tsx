@@ -1,18 +1,37 @@
 'use client'
 
 import { useActionState, useEffect, useRef, useState } from 'react'
-import { createTrade, type FormState } from '@/lib/actions/data'
+import Link from 'next/link'
+import { createTrade, updateTrade, type FormState } from '@/lib/actions/data'
 import { StockPicker, type StockOption } from '@/components/stock-picker'
 import { SubmitButton } from '@/components/forms'
 import { Card, CardHeader, Field, FormError, FormSuccess, Input, Select, Textarea } from '@/components/ui'
 import { parseNumber, money, today } from '@/lib/format'
+import type { Trade } from '@/types/db'
 
-export default function TradeForm({ stocks }: { stocks: StockOption[] }) {
-  const [state, action] = useActionState<FormState, FormData>(createTrade, {})
-  const [side, setSide] = useState('buy')
-  const [quantity, setQuantity] = useState('')
-  const [unitPrice, setUnitPrice] = useState('')
-  const [commission, setCommission] = useState('')
+/** 1234.5 -> "1234,5" (Türkçe ondalık ayracıyla düzenleme formuna basmak için) */
+function tr(value: number | null | undefined): string {
+  if (value === null || value === undefined) return ''
+  return String(value).replace('.', ',')
+}
+
+export default function TradeForm({
+  stocks,
+  initial,
+}: {
+  stocks: StockOption[]
+  initial?: Trade | null
+}) {
+  const duzenleme = Boolean(initial)
+  const [state, action] = useActionState<FormState, FormData>(
+    duzenleme ? updateTrade : createTrade,
+    {},
+  )
+
+  const [side, setSide] = useState(initial?.side ?? 'buy')
+  const [quantity, setQuantity] = useState(tr(initial?.quantity))
+  const [unitPrice, setUnitPrice] = useState(tr(initial?.unit_price))
+  const [commission, setCommission] = useState(initial?.commission ? tr(initial.commission) : '')
   const [resetKey, setResetKey] = useState(0)
   const formRef = useRef<HTMLFormElement>(null)
 
@@ -34,27 +53,53 @@ export default function TradeForm({ stocks }: { stocks: StockOption[] }) {
   return (
     <Card>
       <CardHeader
-        title="Yeni işlem"
-        description="Gerçekleştirdiğiniz alım veya satımı kaydedin."
+        title={duzenleme ? `İşlemi düzenle · ${initial?.symbol}` : 'Yeni işlem'}
+        description={
+          duzenleme
+            ? 'Kaydedince bu hissenin tüm kâr/zarar geçmişi yeniden hesaplanır.'
+            : 'Gerçekleştirdiğiniz alım veya satımı kaydedin.'
+        }
+        action={
+          duzenleme ? (
+            <Link
+              href="/islemler"
+              className="text-xs text-blue-600 hover:underline dark:text-blue-400"
+            >
+              Vazgeç
+            </Link>
+          ) : null
+        }
       />
       <form ref={formRef} action={action} className="space-y-4 p-5">
+        {initial ? <input type="hidden" name="id" value={initial.id} /> : null}
         <FormError>{state.error}</FormError>
         <FormSuccess>{state.success}</FormSuccess>
 
         <Field label="Hisse" hint="Kod veya şirket adıyla arayın; listede yoksa ekleyebilirsiniz.">
-          <StockPicker key={resetKey} name="symbol" stocks={stocks} required />
+          <StockPicker
+            key={resetKey}
+            name="symbol"
+            stocks={stocks}
+            defaultSymbol={initial?.symbol}
+            required
+          />
         </Field>
 
         <div className="grid gap-4 sm:grid-cols-2">
           <Field label="İşlem tipi">
-            <Select name="side" value={side} onChange={(e) => setSide(e.target.value)}>
+            <Select name="side" value={side} onChange={(e) => setSide(e.target.value as 'buy' | 'sell')}>
               <option value="buy">Alış</option>
               <option value="sell">Satış</option>
             </Select>
           </Field>
 
           <Field label="Tarih">
-            <Input name="trade_date" type="date" defaultValue={today()} required />
+            <Input
+              name="trade_date"
+              type="date"
+              defaultValue={initial?.trade_date ?? today()}
+              required
+            />
           </Field>
 
           <Field label="Adet">
@@ -82,7 +127,10 @@ export default function TradeForm({ stocks }: { stocks: StockOption[] }) {
           </Field>
         </div>
 
-        <Field label="Komisyon / masraf (₺)" hint="İşleme özel — boş bırakırsanız 0 kabul edilir.">
+        <Field
+          label="Komisyon / masraf (₺)"
+          hint="İşleme özel — boş bırakırsanız 0 kabul edilir. Toplu girmek isterseniz Cüzdan sayfasını kullanın."
+        >
           <Input
             name="commission"
             inputMode="decimal"
@@ -94,7 +142,12 @@ export default function TradeForm({ stocks }: { stocks: StockOption[] }) {
         </Field>
 
         <Field label="Not">
-          <Textarea name="note" placeholder="Açıklama (isteğe bağlı)" maxLength={500} />
+          <Textarea
+            name="note"
+            placeholder="Açıklama (isteğe bağlı)"
+            maxLength={500}
+            defaultValue={initial?.note ?? ''}
+          />
         </Field>
 
         {gross > 0 ? (
@@ -117,7 +170,11 @@ export default function TradeForm({ stocks }: { stocks: StockOption[] }) {
         ) : null}
 
         <SubmitButton pendingText="Kaydediliyor…">
-          {side === 'buy' ? 'Alış işlemini kaydet' : 'Satış işlemini kaydet'}
+          {duzenleme
+            ? 'Değişikliği kaydet'
+            : side === 'buy'
+              ? 'Alış işlemini kaydet'
+              : 'Satış işlemini kaydet'}
         </SubmitButton>
       </form>
     </Card>
